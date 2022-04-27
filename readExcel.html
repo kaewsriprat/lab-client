@@ -1,0 +1,73 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <style>
+        .navbar {
+            margin-bottom: 0;
+            border-radius: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Bootstrap Container -->
+    <div class="container">
+        <!-- Navbar -->
+        <nav class="navbar navbar-inverse">
+            <!-- Navbar Header -->
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">Lab API</a>
+            </div>
+            <!-- Navbar Links -->
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="#">Home</a></li>
+                <li><a href="register.html">Register</a></li>
+                <li><a href="readExcel.html">Upload</a></li>
+                <li><a href="login.html">Login</a></li>
+            </ul>
+        </nav>
+        <div>
+            <input type="file" id="input" accept=".xls,.xlsx,.csv">
+            <pre id="result"></pre>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.14.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $("#input").on("change", function (e) {
+            var file = e.target.files[0];
+            // input canceled, return
+            if (!file) return;
+
+            var FR = new FileReader();
+            FR.onload = function (e) {
+                var data = new Uint8Array(e.target.result);
+                var workbook = XLSX.read(data, { type: 'array' });
+                var firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+
+                // header: 1 instructs xlsx to create an 'array of arrays'
+                var result = XLSX.utils.sheet_to_json(firstSheet, { header: 2 });
+
+                // data preview
+                $.ajax({
+                    url: "http://localhost/lab-api/subjects/writeExcel",
+                    method: "POST",
+                    dataType: "json",
+                    data: { 'data': result },
+                    success: function (data) {
+                        console.log(data)
+                        $("#result").text(JSON.stringify(data, null, 2));
+                    }
+                })
+            };
+            FR.readAsArrayBuffer(file);
+        });
+    </script>
+</body>
+
+</html>
